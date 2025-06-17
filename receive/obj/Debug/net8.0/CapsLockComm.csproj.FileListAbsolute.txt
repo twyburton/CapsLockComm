@@ -1,0 +1,15 @@
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.GeneratedMSBuildEditorConfig.editorconfig
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.AssemblyInfoInputs.cache
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.AssemblyInfo.cs
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.csproj.CoreCompileInputs.cache
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.sourcelink.json
+D:\Documents\GitHub\CapsLockComm\bin\Debug\net8.0\CapsLockComm.exe
+D:\Documents\GitHub\CapsLockComm\bin\Debug\net8.0\CapsLockComm.deps.json
+D:\Documents\GitHub\CapsLockComm\bin\Debug\net8.0\CapsLockComm.runtimeconfig.json
+D:\Documents\GitHub\CapsLockComm\bin\Debug\net8.0\CapsLockComm.dll
+D:\Documents\GitHub\CapsLockComm\bin\Debug\net8.0\CapsLockComm.pdb
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.dll
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\refint\CapsLockComm.dll
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.pdb
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\CapsLockComm.genruntimeconfig.cache
+D:\Documents\GitHub\CapsLockComm\obj\Debug\net8.0\ref\CapsLockComm.dll
