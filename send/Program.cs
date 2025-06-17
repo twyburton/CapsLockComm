@@ -19,24 +19,28 @@ const uint KEYEVENTF_KEYUP = 0x2;
 static void ToggleCapsLock()
 {
     // Check current state
-    bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
+    // bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
 
     // Press Caps Lock key
     keybd_event((byte)VK_CAPITAL, 0x45, KEYEVENTF_EXTENDEDKEY, UIntPtr.Zero);
 
     // Release Caps Lock key
     keybd_event((byte)VK_CAPITAL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+    // System.Windows.Forms.SendKeys.SendWait("{CAPSLOCK}");
 }
 
 // See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+Console.WriteLine("START");
 
 
-for (int i = 0; i < 50; i++)
+for (int i = 0; i < 10; i++)
 {
-    Console.WriteLine(Console.CapsLock);
+    // Console.WriteLine(Console.CapsLock);
     // System.Windows.Forms.SendKeys.SendWait("{CAPSLOCK}")
     ToggleCapsLock();
     // Console.WriteLine(Console.CapsLock);
-    Thread.Sleep(2);
+    Thread.Sleep(100);
 }
+
+Console.WriteLine("END");

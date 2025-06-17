@@ -20,7 +20,7 @@ for (int i = 0; i < 500; i++)
     } else {
         data += "0";
     }
-    Thread.Sleep(2);
+    Thread.Sleep(5);
 }
 
 Console.WriteLine("END");
