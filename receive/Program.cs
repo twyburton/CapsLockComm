@@ -5,6 +5,67 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Text;
 
+// Import keybd_event function from user32.dll
+[DllImport("user32.dll", SetLastError = true)]
+static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+// Constants for virtual key codes and event flags
+const int VK_CAPITAL = 0x14;
+const int VK_NUMLOCK = 0x90;
+const int VK_SCROLL = 0x91;
+const uint KEYEVENTF_EXTENDEDKEY = 0x1;
+const uint KEYEVENTF_KEYUP = 0x2;
+
+static void setCapsLock( bool capsLockOn )
+{
+    // Check current state
+    bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
+
+    // Console.WriteLine((capsLockOn?"ON":"OFF"));
+
+    if( capsLockOn != isCapsLockOn ){
+        // Press Caps Lock key
+        keybd_event((byte)VK_CAPITAL, 0x45, KEYEVENTF_EXTENDEDKEY, UIntPtr.Zero);
+
+        // Release Caps Lock key
+        keybd_event((byte)VK_CAPITAL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+        // System.Windows.Forms.SendKeys.SendWait("{CAPSLOCK}");
+    }
+}
+
+static void setNumLock( bool numLockOn )
+{
+    // Check current state
+    bool isNumLockOn = Control.IsKeyLocked(Keys.NumLock);
+
+    if( numLockOn != isNumLockOn ){
+        // Press Caps Lock key
+        keybd_event((byte)VK_NUMLOCK, 0x45, KEYEVENTF_EXTENDEDKEY, UIntPtr.Zero);
+
+        // Release Caps Lock key
+        keybd_event((byte)VK_NUMLOCK, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+        // System.Windows.Forms.SendKeys.SendWait("{CAPSLOCK}");
+    }
+}
+
+static void setScrollLock( bool scrollLockOn )
+{
+    // Check current state
+    bool isScrollLockOn = Control.IsKeyLocked(Keys.Scroll);
+
+    if( scrollLockOn != isScrollLockOn ){
+        // Press Caps Lock key
+        keybd_event((byte)VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY, UIntPtr.Zero);
+
+        // Release Caps Lock key
+        keybd_event((byte)VK_SCROLL, 0x45, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+        // System.Windows.Forms.SendKeys.SendWait("{CAPSLOCK}");
+    }
+}
+
 
 static string BinaryArrayToString(int[] binary)
 {
@@ -34,14 +95,17 @@ Console.WriteLine("START");
 
 static int[] receiveMessage(){
 
+    setCapsLock(false);
+    Thread.Sleep(1);
+
     bool stateReceivingLength = true;
 
     List<int> messageLengthBits = new List<int>();
-    int messageLength = -1;
+    long messageLength = -1;
 
     List<int> messageBits = new List<int>();
 
-    bool lastCapsLockState = true;
+    // bool lastCapsLockState = true;
     while( true )
     {
         bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
@@ -49,7 +113,8 @@ static int[] receiveMessage(){
         bool isScrollLockOn = Control.IsKeyLocked(Keys.Scroll);
 
 
-        if( isCapsLockOn && lastCapsLockState == false){
+        if( isCapsLockOn ){
+            Thread.Sleep(1); // Account for weird issue where the keypress hangs
             // Console.WriteLine($"{(isNumLockOn?1:0)} {(isScrollLockOn?1:0)}");
 
             // If we are still receiving length then add each received bit to messageLengthBits list
@@ -71,9 +136,14 @@ static int[] receiveMessage(){
                     return messageBits.ToArray();
                 }
             }
+
+            setCapsLock(false);
+            while( Control.IsKeyLocked(Keys.CapsLock) ){
+                Thread.Sleep(1);
+            }
         }
 
-        lastCapsLockState = isCapsLockOn;
+        // lastCapsLockState = isCapsLockOn;
 
         // if( capsLock ){
         //     data += "1";
@@ -110,13 +180,13 @@ public class BitConverterUtil
     }
 
 
-    public static int BitArrayToNumber(int[] bits)
+    public static long BitArrayToNumber(int[] bits)
     {
         if (bits == null || bits.Length == 0)
             throw new ArgumentException("Bit array cannot be null or empty.");
 
         string binary = string.Join("", bits);
-        return Convert.ToInt32(binary, 2);
+        return Convert.ToInt64(binary, 2);
     }
 }
 

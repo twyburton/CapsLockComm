@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading;
 using System.Text;
+using System.Diagnostics;
 
 
 // Import keybd_event function from user32.dll
@@ -25,6 +26,8 @@ static void setCapsLock( bool capsLockOn )
 {
     // Check current state
     bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
+
+    // Console.WriteLine((capsLockOn?"ON":"OFF"));
 
     if( capsLockOn != isCapsLockOn ){
         // Press Caps Lock key
@@ -73,18 +76,25 @@ static void setScrollLock( bool scrollLockOn )
 Console.WriteLine("START");
 
 
-setCapsLock(false);
-setNumLock(false);
-setScrollLock(false);
 
 
 
 static void sendMessage( int[] message )
 {
 
+    setCapsLock(false);
+    setNumLock(false);
+    setScrollLock(false);
+    Thread.Sleep(10);
+
     static void sendData( int[] data ){
         for (int i = 0; i < data.Length; i+=2)
         {
+            while( Control.IsKeyLocked(Keys.CapsLock) ){
+                Thread.Sleep(1);
+            }
+            Thread.Sleep(1);
+
             int value1 = data[i];
             int value2 = data[i+1];
             // Console.WriteLine($"{value1} {value2}");
@@ -93,9 +103,9 @@ static void sendMessage( int[] message )
             setScrollLock(value2==1);
             setCapsLock(true);
             
-            Thread.Sleep(INTERVAL);
-            setCapsLock(false);
-            Thread.Sleep(INTERVAL);
+            // Thread.Sleep(100);
+            // setCapsLock(false);
+            // Thread.Sleep(INTERVAL);
         }
     }
 
@@ -104,14 +114,22 @@ static void sendMessage( int[] message )
     int[] lengthBits = BitConverterUtil.NumberToBitArray( message.Length, 64);  // 65 = 'A' = 01000001
     
     sendData(lengthBits); // Send length
+
+    // Console.WriteLine($"Time to send message: {(message.Length/2*(INTERVAL*2))}ms");
     sendData(message); // Send Message
 }
 
 
-// int[] data = [0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0];
 string dstring = "Hello World! Followed by longer message to test resilience!";
+// string dstring = "HE";
 int[] data = stringToBinaryArray(dstring);
+
+Stopwatch stopwatch = new Stopwatch();
+stopwatch.Start();
 sendMessage(data);
+stopwatch.Stop();
+Console.WriteLine($"Time since start: {stopwatch.ElapsedMilliseconds} ms");
+Console.WriteLine($"Bitrate: {((float)data.Length*1000.0)/(float)stopwatch.ElapsedMilliseconds} b/s");
 
 Console.WriteLine("END");
 
@@ -182,12 +200,12 @@ public class BitConverterUtil
     }
 
 
-    public static int BitArrayToNumber(int[] bits)
+    public static long BitArrayToNumber(int[] bits)
     {
         if (bits == null || bits.Length == 0)
             throw new ArgumentException("Bit array cannot be null or empty.");
 
         string binary = string.Join("", bits);
-        return Convert.ToInt32(binary, 2);
+        return Convert.ToInt64(binary, 2);
     }
 }

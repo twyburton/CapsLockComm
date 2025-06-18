@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "FwMmWXPWp5M=",
+  "dgSpecHash": "cY+q0AGcA8Y=",
   "success": true,
   "projectFilePath": "D:\\Documents\\GitHub\\CapsLockComm\\send\\CapsLockComm.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\twybu\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.17\\microsoft.net.illink.tasks.8.0.17.nupkg.sha512"
+  ],
   "logs": []
 }

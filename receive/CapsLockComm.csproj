@@ -6,6 +6,8 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<UseWindowsForms>true</UseWindowsForms>
+		<PublishSingleFile>true</PublishSingleFile>
+    	<!-- <SelfContained>true</SelfContained> -->
 	</PropertyGroup>
 
 </Project>
