@@ -117,10 +117,11 @@ static void sendMessage( int[] message )
 
     // Console.WriteLine($"Time to send message: {(message.Length/2*(INTERVAL*2))}ms");
     sendData(message); // Send Message
+
 }
 
 
-string dstring = "Hello World! Followed by longer message to test resilience!";
+string dstring = "Hello World! Followed by longer message to test resilience! Hello World! Followed by longer message to test resilience!";
 // string dstring = "HE";
 int[] data = stringToBinaryArray(dstring);
 

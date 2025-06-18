@@ -133,24 +133,21 @@ static int[] receiveMessage(){
                 messageBits.Add((isScrollLockOn?1:0));
 
                 if( messageLength == messageBits.Count){
+
+                    setCapsLock(false);
+                    setNumLock(false);
+                    setScrollLock(false);
+
                     return messageBits.ToArray();
                 }
             }
 
             setCapsLock(false);
-            while( Control.IsKeyLocked(Keys.CapsLock) ){
-                Thread.Sleep(1);
-            }
+            // while( Control.IsKeyLocked(Keys.CapsLock) ){
+            //     Thread.Sleep(1);
+            // }
         }
 
-        // lastCapsLockState = isCapsLockOn;
-
-        // if( capsLock ){
-        //     data += "1";
-        // } else {
-        //     data += "0";
-        // }
-        // Thread.Sleep(0);
     }
 
 }
