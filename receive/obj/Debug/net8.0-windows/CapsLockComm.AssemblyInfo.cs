@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CapsLockComm")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+78ff3704f42cd11aa096a20c33dd8ae8d327dc64")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+406ce5b7d90b48c7a0957f6bc35e6f4daf9beb86")]
 [assembly: System.Reflection.AssemblyProductAttribute("CapsLockComm")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CapsLockComm")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
