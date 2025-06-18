@@ -121,7 +121,7 @@ static void sendMessage( int[] message )
 }
 
 
-string dstring = "Hello World! Followed by longer message to test resilience! Hello World! Followed by longer message to test resilience!";
+string dstring = "Hello World! Followed by longer message to test resilience! Hello World! Followed by longer message to test resilience! Hello World! Followed by longer message to test resilience! Hello World! Followed by longer message to test resilience!";
 // string dstring = "HE";
 int[] data = stringToBinaryArray(dstring);
 
