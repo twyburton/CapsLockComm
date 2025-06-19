@@ -9,7 +9,7 @@ For example, copy & paste is disabled over a RDP session.
 
 I've played around with a few schemes to maximise speed and reliability. For speed the best option was to have a fix symbol length that the receiver would synchronise to and then the data could be encoded as 3 bit numbers using the cap/num/scroll lock keys. Even with the sender and receiver running on the same host (ideal conditions) 20-40ms symbol lengths was the best I could achieve and still be reliable. I suspect the reliability would be even poorer over an RDP session. So I settled on an interactive protocol which had slightly lower maximum performance but conceptually has much better reliability. The bitrate will vary based on the connection. It works as follows:
 
-## Layer 1 - Data Layer
+### Layer 1 - Data Layer
 
 The Caps Lock key acts as a `message ready` flag. While the num lock acts as a `bit 0` and scroll lock as `bit 1` flag. With an array of bits the sender takes the first 2 bits and turns on num/scroll lock to encode the bits as shown below:
 
@@ -24,11 +24,20 @@ The receive detects caps lock is on and reads the Num and Scroll lock key states
 
 The sender dectects that caps lock is disabled and the process is repeated for the next 2 bits.
 
-## Layer 2 - Message Layer
+### Layer 2 - Message Layer
 
 The next layer up is the message layer. This is used by the sender and receiver to correctly transfer an arbitary length message. 
 The sender first sends the message length as a 64 bit encoded number followed by the data.
 
 - ADD ERROR CORRECTION AT THIS LEVEL IN THE FUTURE.
 
-## Layer 3 - Transfer Layer
+### Layer 3 - Transfer Layer
+
+
+
+
+# Build 
+
+`dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`
+
+Then exe file output to `bin/Release/net8.0-windows/win-x64/publish`
