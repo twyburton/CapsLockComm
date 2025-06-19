@@ -97,15 +97,10 @@ static void sendMessage( int[] message )
 
             int value1 = data[i];
             int value2 = data[i+1];
-            // Console.WriteLine($"{value1} {value2}");
 
             setNumLock(value1==1);
             setScrollLock(value2==1);
             setCapsLock(true);
-            
-            // Thread.Sleep(100);
-            // setCapsLock(false);
-            // Thread.Sleep(INTERVAL);
         }
     }
 
@@ -115,7 +110,6 @@ static void sendMessage( int[] message )
     
     sendData(lengthBits); // Send length
 
-    // Console.WriteLine($"Time to send message: {(message.Length/2*(INTERVAL*2))}ms");
     sendData(message); // Send Message
 
 }
