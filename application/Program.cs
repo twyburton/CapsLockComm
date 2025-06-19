@@ -63,13 +63,23 @@ public class CapsLockTransfer {
 
         if( messageType == TYPE_STRING ){
             Console.WriteLine(BitConverterUtil.BinaryArrayToString(messageData));
+        } else if( messageType == TYPE_BITS ){
+            Console.WriteLine("Received Binary Message");
         }
 
-        return null;
+        return messageData;
 
     }
 
     public static void sendBits(int[] data){
+
+        int[] typeEncoding = BitConverterUtil.NumberToBitArray( TYPE_BITS, 4);
+
+        int[] data = BitConverterUtil.stringToBinaryArray(msg);
+        Console.WriteLine("Sending Message...");
+
+        int[] combined = typeEncoding.Concat(data).ToArray();
+        CapsLockMessage.sendMessage(combined);
 
     }
 
