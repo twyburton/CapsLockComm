@@ -33,10 +33,10 @@ The sender first sends the message length as a 64 bit encoded number followed by
 
 ### Layer 3 - Transfer Layer
 
+This layer allows for different types of data to be transfered between the sender and the receiver. It starts with 4 bits to represent the message type followed by the message data.
 
 
-
-# Build 
+## Build 
 
 `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`
 
