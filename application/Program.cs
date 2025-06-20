@@ -283,6 +283,11 @@ public class CapsLockMessage {
         static void sendData( int[] data ){
             for (int i = 0; i < data.Length; i+=2)
             {
+
+                if( data.Length > 1000 && i%500==0){
+                    Console.WriteLine($"{Math.Round((float)i/(float)data.Length*100.0,2)}%");
+                }
+
                 while( Control.IsKeyLocked(Keys.CapsLock) ){
                     Thread.Sleep(1);
                 }
