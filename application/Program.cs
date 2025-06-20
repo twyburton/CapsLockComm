@@ -5,42 +5,55 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
+using System.IO;
 
 
+static void main(){
+
+    Console.WriteLine("Caps Lock Communication!");
+
+    while ( true )
+    {
+
+        Console.Write("> ");
+        string cmd = (string) Console.ReadLine();
+        string[] splitCmd = cmd.Split(' ');
+
+        if( cmd == "help" ){
+
+            Console.WriteLine("Use to transfer data using lock keys.");
+            Console.WriteLine("");
+            Console.WriteLine("receive = put into receiving mode and wait for transfer");
+            Console.WriteLine("send = send a text message");
+            Console.WriteLine("send-file = send a file");
+            Console.WriteLine("");
 
 
+        } else if( cmd == "receive" ){
 
-Console.WriteLine("Caps Lock Communication!");
+            Console.WriteLine("Waiting...");
+            CapsLockTransfer.receiveTransfer();
 
-while ( true )
-{
+        } else if( splitCmd.Length == 1 && splitCmd[0] == "send"){
 
-    Console.Write("> ");
-    string cmd = (string) Console.ReadLine();
-    string[] splitCmd = cmd.Split(' ');
+            Console.Write("Message: ");
+            string msg = (string) Console.ReadLine();
+            CapsLockTransfer.sendString(msg);
 
-    if( cmd == "receive" ){
+        } else if( splitCmd.Length == 1 && splitCmd[0] == "send-file"){
 
-        Console.WriteLine("Waiting...");
-        CapsLockTransfer.receiveTransfer();
+            Console.Write("File: ");
+            string filepath = (string) Console.ReadLine();
+            
+            CapsLockTransfer.sendFile(filepath);
 
-    } else if( splitCmd.Length == 1 && splitCmd[0] == "send"){
-
-        Console.Write("Message: ");
-        string msg = (string) Console.ReadLine();
-        CapsLockTransfer.sendString(msg);
-
-    } else if( splitCmd.Length == 1 && splitCmd[0] == "send-test"){
-
-        int[] data = [0,1,1,0,0,1,1,0,1];
-        Console.WriteLine("Sending Message...");
-        CapsLockMessage.sendMessage(data);
-
-    } else if( cmd == "exit" ){
-        break;
+        } else if( cmd == "exit" ){
+            break;
+        }
     }
 }
 
+main();
 
 
 public class CapsLockTransfer {
@@ -54,17 +67,74 @@ public class CapsLockTransfer {
         int[] message = CapsLockMessage.receiveMessage();
 
         int[] messageTypeBits = new int[4];
-        Array.Copy(message, 0, messageTypeBits, 0, 3);
-        int messageType = (int) BitConverterUtil.BitArrayToNumber(messageTypeBits.ToArray());
+        Array.Copy(message, 0, messageTypeBits, 0, 4);
+        int messageType = (int) BitConverterUtil.BitArrayToNumber(messageTypeBits);
         Console.WriteLine($"Message Type: {messageType}");
 
         int[] messageData = new int[message.Length-4];
         Array.Copy(message, 4, messageData, 0, message.Length-4);
 
         if( messageType == TYPE_STRING ){
+
             Console.WriteLine(BitConverterUtil.BinaryArrayToString(messageData));
+
         } else if( messageType == TYPE_BITS ){
+
             Console.WriteLine("Received Binary Message");
+
+        } else if( messageType == TYPE_FILE ){
+
+            int[] fileNameLengthBits = new int[16];
+            Array.Copy(messageData, 0, fileNameLengthBits, 0, 16);
+            long fileNameLength = BitConverterUtil.BitArrayToNumber(fileNameLengthBits);
+            // Console.WriteLine($"Filename Length: {fileNameLength}");
+
+            int[] fileNameBits = new int[fileNameLength];
+            Array.Copy(messageData, 16, fileNameBits, 0, fileNameLength);
+            string fileName = BitConverterUtil.BinaryArrayToString(fileNameBits);
+            // Console.WriteLine($"Filename: {fileName}");
+
+            int[] fileDataLengthBits = new int[64];
+            Array.Copy(messageData, 16 + fileNameLength, fileDataLengthBits, 0, 64);
+            long fileDataLength = BitConverterUtil.BitArrayToNumber(fileDataLengthBits);
+            // Console.WriteLine($"File Data Length: {fileDataLength}");
+
+            int[] fileDataBits = new int[fileDataLength];
+            Array.Copy(messageData, 16 + fileNameLength + 64, fileDataBits, 0, fileDataLength);
+
+            static byte[] BitArrayToByteArray(int[] bits)
+            {
+                int byteCount = (bits.Length + 7) / 8; // Round up
+                byte[] bytes = new byte[byteCount];
+
+                for (int i = 0; i < bits.Length; i++)
+                {
+                    int byteIndex = i / 8;
+                    int bitIndex = 7 - (i % 8); // Big-endian (MSB first)
+                    bytes[byteIndex] |= (byte)(bits[i] << bitIndex);
+                }
+
+                return bytes;
+            }
+            byte[] fileDataBytes = BitArrayToByteArray(fileDataBits);
+
+
+            // Check if file already exists and ask for confirmation if it does
+            bool writeFile = true;
+            if (File.Exists(fileName))
+            {
+                Console.Write($"{fileName} already exists. Confirm overwrite (y/N)");
+                string confirm = (string) Console.ReadLine();
+                if( confirm.ToLower() != "y"){
+                    writeFile = false;
+                }
+            }
+            
+            if( writeFile){
+                Console.WriteLine($"Saving to {fileName}...");
+                File.WriteAllBytes(fileName, fileDataBytes);
+            }
+
         }
 
         return messageData;
@@ -75,7 +145,6 @@ public class CapsLockTransfer {
 
         int[] typeEncoding = BitConverterUtil.NumberToBitArray( TYPE_BITS, 4);
 
-        int[] data = BitConverterUtil.stringToBinaryArray(msg);
         Console.WriteLine("Sending Message...");
 
         int[] combined = typeEncoding.Concat(data).ToArray();
@@ -95,8 +164,44 @@ public class CapsLockTransfer {
 
     }
 
-    public static void sendFile(string filename){
-        // NOT YET IMPLEMENTED
+    public static void sendFile(string filepath ){
+        // Format:
+        // Filename Length (2 bytes); filename; FileData Length (8 bytes); fileData
+
+         int[] typeEncoding = BitConverterUtil.NumberToBitArray( TYPE_FILE, 4);
+
+
+        string[] filepathSplit = filepath.Split("\\");
+        string fileName = filepathSplit[filepathSplit.Length-1];
+
+        int[] fileNameData = BitConverterUtil.stringToBinaryArray(fileName);
+        int[] fileNameLength = BitConverterUtil.NumberToBitArray( fileNameData.Length, 16);
+        int[] fileNameComponents = fileNameLength.Concat(fileNameData).ToArray();
+
+        static int[] ByteArrayToBitArray(byte[] bytes)
+        {
+            int[] bits = new int[bytes.Length * 8];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                for (int bit = 0; bit < 8; bit++)
+                {
+                    // Extract bit from most significant to least significant
+                    bits[i * 8 + bit] = (bytes[i] >> (7 - bit)) & 1;
+                }
+            }
+            return bits;
+        }
+        
+        byte[] fileDataBytes = File.ReadAllBytes(filepath);
+        int[] fileDataBits = ByteArrayToBitArray(fileDataBytes);
+        int[] fileDataLength = BitConverterUtil.NumberToBitArray( fileDataBits.Length, 64);
+        int[] fileDataComponents = fileDataLength.Concat(fileDataBits).ToArray();
+
+        int[] combined = fileNameComponents.Concat(fileDataComponents).ToArray();
+        combined = typeEncoding.Concat(combined).ToArray();
+        Console.WriteLine($"Sending {fileName}...");
+        Console.WriteLine($"Total Transfer Length: {combined.Length}");
+        CapsLockMessage.sendMessage(combined);
     }
 
 }
