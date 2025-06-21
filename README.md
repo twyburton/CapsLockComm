@@ -38,6 +38,8 @@ This layer allows for different types of data to be transfered between the sende
 
 ## Build 
 
-`dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`
+```
+dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```
 
 Then exe file output to `bin/Release/net8.0-windows/win-x64/publish`

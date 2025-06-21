@@ -98,27 +98,67 @@ namespace CapComm.Utilities
 
     public class BitConverterUtil
     {
-        public static int[] NumberToBitArray(int number, int bitCount = 8)
+        public static bool[] NumberToBitArray(int number, int bitCount = 8)
         {
             string binary = Convert.ToString(number, 2).PadLeft(bitCount, '0');
 
-            int[] bits = new int[bitCount];
+            bool[] bits = new bool[bitCount];
             for (int i = 0; i < bitCount; i++)
             {
-                bits[i] = binary[i] == '1' ? 1 : 0;
+                bits[i] = binary[i] == '1';
             }
 
             return bits;
         }
 
 
-        public static long BitArrayToNumber(int[] bits)
+        public static long BitArrayToNumber(bool[] bits)
         {
             if (bits == null || bits.Length == 0)
                 throw new ArgumentException("Bit array cannot be null or empty.");
 
-            string binary = string.Join("", bits);
+            byte[] bitN = new byte[bits.Length];
+            for (int i = 0; i < bits.Length; i++)
+            {
+                bitN[i] = (byte) (bits[i] ? 1 : 0);
+            }
+
+            string binary = string.Join("", bitN);
             return Convert.ToInt64(binary, 2);
+        }
+
+        public static bool[] ConvertToBoolBitArray(byte[] input)
+        {
+            bool[] bitArray = new bool[input.Length * 8];
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                for (int bit = 0; bit < 8; bit++)
+                {
+                    // Big-endian bit order (MSB first)
+                    bitArray[i * 8 + (7 - bit)] = ((input[i] >> bit) & 1) == 1;
+                }
+            }
+
+            return bitArray;
+        }
+
+        public static byte[] ConvertBoolBitArrayToBytes(bool[] bits)
+        {
+            int byteLength = (bits.Length + 7) / 8; // Round up to full bytes
+            byte[] output = new byte[byteLength];
+
+            for (int i = 0; i < bits.Length; i++)
+            {
+                if (bits[i])
+                {
+                    int byteIndex = i / 8;
+                    int bitIndex = 7 - (i % 8); // Big-endian bit order
+                    output[byteIndex] |= (byte)(1 << bitIndex);
+                }
+            }
+
+            return output;
         }
 
 
@@ -144,23 +184,5 @@ namespace CapComm.Utilities
             return result.ToString();
         }
 
-
-        public static int[] stringToBinaryArray(string str)
-        {
-
-            List<int> binaryBits = new List<int>();
-            foreach (char c in str)
-            {
-                byte ascii = (byte)c;
-                string binary = Convert.ToString(ascii, 2).PadLeft(8, '0');
-
-                foreach (char bit in binary)
-                {
-                    binaryBits.Add(bit == '1' ? 1 : 0);
-                }
-            }
-
-            return binaryBits.ToArray();
-        }
     }
 }
