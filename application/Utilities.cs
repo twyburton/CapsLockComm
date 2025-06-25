@@ -1,7 +1,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
@@ -11,16 +10,39 @@ namespace CapComm.Utilities
 {
 
 
-    
+
+    public class KeyboardState
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        private static extern short GetKeyState(int keyCode);
+
+        public static bool IsCapsLockOn()
+        {
+            return Convert.ToBoolean(GetKeyState(0x14) & 0x0001); // 0x14 = VK_CAPITAL
+        }
+
+        public static bool IsNumLockOn()
+        {
+            return Convert.ToBoolean(GetKeyState(0x90) & 0x0001); // 0x90 = VK_NUMLOCK
+        }
+        
+        public static bool IsScrollLockOn()
+        {
+            return Convert.ToBoolean(GetKeyState(0x91) & 0x0001); // 0x91 = VK_SCROLL
+        }
+    }
+
+
     public class KeyActions
     {
-        public static void SetCapsLock( bool capsLockOn )
+        public static void SetCapsLock(bool capsLockOn)
         {
 
             // Check current state
-            bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
+            bool isCapsLockOn = KeyboardState.IsCapsLockOn();
 
-            if( capsLockOn != isCapsLockOn ){
+            if (capsLockOn != isCapsLockOn)
+            {
 
                 // Import keybd_event function from user32.dll
                 [DllImport("user32.dll", SetLastError = true)]
@@ -41,12 +63,13 @@ namespace CapComm.Utilities
             }
         }
 
-        public static void SetNumLock( bool numLockOn )
+        public static void SetNumLock(bool numLockOn)
         {
             // Check current state
-            bool isNumLockOn = Control.IsKeyLocked(Keys.NumLock);
+            bool isNumLockOn = KeyboardState.IsNumLockOn();
 
-            if( numLockOn != isNumLockOn ){
+            if (numLockOn != isNumLockOn)
+            {
 
                 // Import keybd_event function from user32.dll
                 [DllImport("user32.dll", SetLastError = true)]
@@ -67,12 +90,13 @@ namespace CapComm.Utilities
             }
         }
 
-        public static void SetScrollLock( bool scrollLockOn )
+        public static void SetScrollLock(bool scrollLockOn)
         {
             // Check current state
-            bool isScrollLockOn = Control.IsKeyLocked(Keys.Scroll);
+            bool isScrollLockOn = KeyboardState.IsScrollLockOn();
 
-            if( scrollLockOn != isScrollLockOn ){
+            if (scrollLockOn != isScrollLockOn)
+            {
 
                 // Import keybd_event function from user32.dll
                 [DllImport("user32.dll", SetLastError = true)]
@@ -127,6 +151,8 @@ namespace CapComm.Utilities
             return Convert.ToInt64(binary, 2);
         }
 
+
+        // Convert a byte[] into a bool[] representing each bit
         public static bool[] ConvertToBoolBitArray(byte[] input)
         {
             bool[] bitArray = new bool[input.Length * 8];
@@ -143,6 +169,7 @@ namespace CapComm.Utilities
             return bitArray;
         }
 
+        // Convert a bool[] that represents bits back into a byte[]
         public static byte[] ConvertBoolBitArrayToBytes(bool[] bits)
         {
             int byteLength = (bits.Length + 7) / 8; // Round up to full bytes

@@ -1,12 +1,6 @@
 ﻿
 using System;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Threading;
-using System.Text;
-using System.Diagnostics;
 using System.IO;
-using CapComm.Utilities;
 using CapComm.Communication;
 
 

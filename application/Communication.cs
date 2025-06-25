@@ -1,7 +1,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Threading;
 using System.Text;
 using System.Diagnostics;
@@ -22,6 +21,15 @@ namespace CapComm.Communication
 
     public class CapsLockTransfer
     {
+        // There are three types of transfers (more can be added later)
+        // These are: 1) Bytes which just transfers an array of bytes; 2) String which 
+        // transfers a string (This is just a byte transfer but does the string encoding 
+        // and decoding at each end); 3) File which transfers a file and writes the file
+        // to the receivers local directory. 
+
+        // This class has a generic receiveTransfer method that will receive transfers
+        // of any type and handle appropriatly. There are send methods for each individual
+        // transfer type.
 
         public static byte TYPE_BYTES = 0x01;
         public static byte TYPE_STRING = 0x02;
@@ -35,9 +43,9 @@ namespace CapComm.Communication
             byte messageType = message[0];
             Console.WriteLine($"Message Type: {messageType}");
 
+            // Extract message data
             byte[] messageData = new byte[message.Length - 1];
             Array.Copy(message, 1, messageData, 0, message.Length - 1);
-            // Console.WriteLine(string.Join(", ", messageData));
 
             if (messageType == TYPE_STRING)
             {
@@ -159,15 +167,19 @@ namespace CapComm.Communication
     }
 
 
+    // Class used for reliable message sending.
     public class CapsLockMessage
     {
 
+        // When this method is called the program will wait for a message to be received.
         public static byte[] ReceiveMessage()
         {
 
             KeyActions.SetCapsLock(false);
             Thread.Sleep(1);
 
+            // We can be in a recceiving length state or not. If true then we are reading 
+            // the message length bits. If false, then we are reading the messasge data
             bool stateReceivingLength = true;
 
             List<bool> messageLengthBits = new List<bool>();
@@ -175,18 +187,17 @@ namespace CapComm.Communication
 
             List<bool> messageBits = new List<bool>();
 
-            // bool lastCapsLockState = true;
+            // Loop until a message is read and then return the message content
             while (true)
             {
-                bool isCapsLockOn = Control.IsKeyLocked(Keys.CapsLock);
-                bool isNumLockOn = Control.IsKeyLocked(Keys.NumLock);
-                bool isScrollLockOn = Control.IsKeyLocked(Keys.Scroll);
+                bool isCapsLockOn = KeyboardState.IsCapsLockOn();
+                bool isNumLockOn = KeyboardState.IsNumLockOn();
+                bool isScrollLockOn = KeyboardState.IsScrollLockOn();
 
-
+                // If caps lock in on then message is ready to be read.
                 if (isCapsLockOn)
                 {
-                    Thread.Sleep(1); // Account for weird issue where the keypress hangs
-                    // Console.WriteLine($"{(isNumLockOn?1:0)} {(isScrollLockOn?1:0)}");
+                    Thread.Sleep(1); // Pause to account for weird issue discovered in testing where the keypress hangs
 
                     // If we are still receiving length then add each received bit to messageLengthBits list
                     if (stateReceivingLength)
@@ -194,16 +205,19 @@ namespace CapComm.Communication
                         messageLengthBits.Add(isNumLockOn);
                         messageLengthBits.Add(isScrollLockOn);
 
-                        // If length is 64 then we have whole number
-                        if (messageLengthBits.Count == 64)
+                        // If length is 32 then we have whole number
+                        if (messageLengthBits.Count == 32)
                         {
                             stateReceivingLength = false; // Change mode to receiving message
                             messageLength = BitConverterUtil.BitArrayToNumber(messageLengthBits.ToArray());
-                            Console.WriteLine($"Message Length: {messageLength}");
+                            Console.WriteLine($"Message Length: {messageLength} bits");
                         }
                     }
                     else
                     {
+                        // If we are not in the receiving length state then we should read the message
+
+                        // If we have not reached the message length then read bits.
                         if (messageBits.Count < messageLength)
                         {
                             messageBits.Add(isNumLockOn);
@@ -213,6 +227,7 @@ namespace CapComm.Communication
                             messageBits.Add(isScrollLockOn);
                         }
 
+                        // If we have ready the correct number of bits then we can stop and return the message
                         if (messageBits.Count == messageLength)
                         {
 
@@ -227,15 +242,13 @@ namespace CapComm.Communication
                     }
 
                     KeyActions.SetCapsLock(false);
-                    // while( Control.IsKeyLocked(Keys.CapsLock) ){
-                    //     Thread.Sleep(1);
-                    // }
                 }
 
             }
 
         }
 
+        // This is used to send a message
         public static void SendMessage(byte[] message)
         {
             bool[] messageBits = BitConverterUtil.ConvertToBoolBitArray(message);
@@ -245,22 +258,27 @@ namespace CapComm.Communication
             KeyActions.SetScrollLock(false);
             Thread.Sleep(10);
 
+            // Send a data encoded as boolean array
             static void sendData(bool[] data)
             {
+                // Iterate over data in pairs of two (To be encoded as Num lock & Scroll Lock)
                 for (int i = 0; i < data.Length; i += 2)
                 {
 
+                    // Progress tracking for large data transfers
                     if (data.Length > 1000 && i % 500 == 0)
                     {
                         Console.WriteLine($"{Math.Round((float)i / (float)data.Length * 100.0, 2)}%");
                     }
 
-                    while (Control.IsKeyLocked(Keys.CapsLock))
+                    // Block until the caps lock key is disabled on which indicates that data is ready to be written
+                    while (KeyboardState.IsCapsLockOn())
                     {
                         Thread.Sleep(1);
                     }
                     Thread.Sleep(1);
 
+                    // Get values for bit 0 and 1. If the data is an odd number in length then just send bit 1 to false.
                     bool value1 = data[i];
                     bool value2 = false;
                     if (i + 1 <= data.Length - 1)
@@ -268,15 +286,16 @@ namespace CapComm.Communication
                         value2 = data[i + 1];
                     }
 
+                    // Set lock key status based on data and then turn caps lock on to indicate ready to write.
                     KeyActions.SetNumLock(value1);
                     KeyActions.SetScrollLock(value2);
                     KeyActions.SetCapsLock(true);
                 }
             }
 
-            // Send message length as 64 bit number in bits followed by message
-            Console.WriteLine($"Message Length: {messageBits.Length}");
-            bool[] lengthBits = BitConverterUtil.NumberToBitArray(messageBits.Length, 64);  // 65 = 'A' = 01000001
+            // Send message length as 32 bit number in bits followed by message
+            Console.WriteLine($"Message Length: {messageBits.Length} bits");
+            bool[] lengthBits = BitConverterUtil.NumberToBitArray(messageBits.Length, 32);
 
             sendData(lengthBits); // Send length
 
