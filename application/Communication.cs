@@ -235,11 +235,10 @@ namespace CapComm.Communication
                             KeyActions.SetScrollLock(false);
 
                             // Error correction
-                            // var decoder = new ReedSolomonDecoder(10);
-                            // messageBytes = decoder.Decode(messageBytes);
-                            bool[] messageBitsCorrected = ErrorCorrection.encode(messageBits.ToArray());
+                            // bool[] messageBitsCorrected = Hamming3126.Decode(messageBits.ToArray());
+                            // byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBitsCorrected);
 
-                            byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBitsCorrected);
+                            byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBits.ToArray());
 
                             
 
@@ -262,7 +261,7 @@ namespace CapComm.Communication
             bool[] messageBits = BitConverterUtil.ConvertToBoolBitArray(message);
 
             // Error correction handling
-            messageBits = ErrorCorrection.encode(messageBits);
+            // messageBits = Hamming3126.Encode(messageBits);
 
             KeyActions.SetCapsLock(false);
             KeyActions.SetNumLock(false);

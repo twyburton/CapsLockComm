@@ -25,7 +25,7 @@ namespace CapComm.Utilities
         {
             return Convert.ToBoolean(GetKeyState(0x90) & 0x0001); // 0x90 = VK_NUMLOCK
         }
-        
+
         public static bool IsScrollLockOn()
         {
             return Convert.ToBoolean(GetKeyState(0x91) & 0x0001); // 0x91 = VK_SCROLL
@@ -144,7 +144,7 @@ namespace CapComm.Utilities
             byte[] bitN = new byte[bits.Length];
             for (int i = 0; i < bits.Length; i++)
             {
-                bitN[i] = (byte) (bits[i] ? 1 : 0);
+                bitN[i] = (byte)(bits[i] ? 1 : 0);
             }
 
             string binary = string.Join("", bitN);
@@ -211,5 +211,163 @@ namespace CapComm.Utilities
             return result.ToString();
         }
 
+    }
+}
+
+
+
+public static class Hamming3126
+{
+    private const int DataBits = 26;
+    private const int CodeBits = 31;
+    private static readonly int[] ParityPositions = { 0, 1, 3, 7, 15 }; // 1-based: 1,2,4,8,16 (0-based indexing)
+
+    public static bool[] Encode(bool[] data)
+    {
+
+        // Format: 5 bits representing padding length + n bits of data + m bits of padding to make total multiple of 26bits long
+
+        var result = new List<bool>();
+        var dataToEncode = new List<bool>();
+
+        // Calculate the padding required based on the data length + 5 bits to indicate padding length
+        int paddingLength = (DataBits - ((data.Length + 5) % DataBits)) % DataBits;
+        // Console.WriteLine($"Padding Length {paddingLength}");
+
+        // Create padding bits
+        bool[] paddingMetadata = new bool[5];
+        for (int j = 0; j < 5; j++)
+            paddingMetadata[j] = (paddingLength & (1 << j)) != 0;
+
+        // Add padding metadata and padding together
+        dataToEncode.AddRange(paddingMetadata);
+        dataToEncode.AddRange(data);
+        if (paddingLength > 0)
+        {
+            dataToEncode.AddRange(new bool[paddingLength]);
+        }
+
+        // Encode each block
+        for (int i = 0; i < dataToEncode.Count; i += 26)
+        {
+            bool[] block = new bool[DataBits];
+            Array.Copy(dataToEncode.ToArray(), i, block, 0, DataBits);
+
+            result.AddRange(EncodeBlock(block));
+        }
+
+        return result.ToArray();
+    }
+
+    public static bool[] Decode(bool[] code)
+    {
+
+        if (code.Length % CodeBits != 0)
+        {
+            return null;
+        }
+
+        var decodedBlocks = new List<bool>();
+
+        // Decode blocks
+        int totalBlocks = code.Length / CodeBits;
+        for (int i = 0; i < totalBlocks; i++)
+        {
+            bool[] block = new bool[CodeBits];
+            Array.Copy(code, i * CodeBits, block, 0, CodeBits);
+            bool[] decoded = DecodeBlock(block);
+            decodedBlocks.AddRange(decoded);
+        }
+
+        static void PrintBits(string label, IEnumerable<bool> bits)
+        {
+            Console.Write($"{label}: ");
+            foreach (var bit in bits)
+                Console.Write(bit ? '1' : '0');
+            Console.WriteLine();
+        }
+
+        // Remove padding
+        // Calculate padding length
+        int paddingLength = 0;
+        for (int j = 0; j < 5; j++)
+            if (decodedBlocks[j])
+                paddingLength |= (1 << j);
+        // Copy data not related to padding
+        bool[] originalMessage = new bool[decodedBlocks.Count - 5 - paddingLength];
+        Array.Copy(decodedBlocks.ToArray(), 5, originalMessage, 0, originalMessage.Length);
+
+        return originalMessage;
+
+    }
+
+    public static bool[] EncodeBlock(bool[] dataBlock)
+    {
+        bool[] codeword = new bool[CodeBits];
+        int dataIdx = 0;
+
+        // Fill in data bits (skip parity positions)
+        for (int i = 0; i < CodeBits; i++)
+        {
+            if (Array.IndexOf(ParityPositions, i) == -1)
+            {
+                codeword[i] = dataBlock[dataIdx++];
+            }
+        }
+
+        // Calculate parity bits
+        for (int i = 0; i < ParityPositions.Length; i++)
+        {
+            int p = ParityPositions[i];
+            bool parity = false;
+            for (int j = 0; j < CodeBits; j++)
+            {
+                if (j == p) continue;
+                if (((j + 1) & (p + 1)) != 0)
+                    parity ^= codeword[j];
+            }
+            codeword[p] = parity;
+        }
+
+        return codeword;
+    }
+
+    public static bool[] DecodeBlock(bool[] codeword)
+    {
+        int syndrome = 0;
+
+        // Calculate syndrome
+        for (int i = 0; i < ParityPositions.Length; i++)
+        {
+            int p = ParityPositions[i];
+            bool parity = false;
+
+            for (int j = 0; j < CodeBits; j++)
+            {
+                if (j == p) continue;
+                if (((j + 1) & (p + 1)) != 0)
+                    parity ^= codeword[j];
+            }
+
+            if (parity != codeword[p])
+                syndrome |= (1 << i);
+        }
+
+        // Correct single-bit error
+        if (syndrome != 0 && syndrome <= CodeBits)
+        {
+            codeword[syndrome - 1] ^= true;
+        }
+
+        // Extract data bits (skip parity positions)
+        bool[] data = new bool[DataBits];
+        int dataIdx = 0;
+        for (int i = 0; i < CodeBits; i++)
+        {
+            if (Array.IndexOf(ParityPositions, i) == -1)
+                data[dataIdx++] = codeword[i];
+        }
+
+        return data;
     }
 }
