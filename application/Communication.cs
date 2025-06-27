@@ -1,4 +1,3 @@
-
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -140,7 +139,7 @@ namespace CapComm.Communication
             string[] filepathSplit = filepath.Split("\\");
             string fileName = filepathSplit[filepathSplit.Length - 1];
 
-            byte[] fileNameBytes = Encoding.UTF8.GetBytes(fileName); 
+            byte[] fileNameBytes = Encoding.UTF8.GetBytes(fileName);
             byte[] fileNameLengthBytes = BitConverter.GetBytes(fileNameBytes.Length); // 4 bytes
 
             byte[] fileDataBytes = File.ReadAllBytes(filepath);
@@ -157,7 +156,7 @@ namespace CapComm.Communication
             Array.Copy(fileDataLengthBytes, 0, combined, counter, fileDataLengthBytes.Length);
             counter += fileDataLengthBytes.Length;
             Array.Copy(fileDataBytes, 0, combined, counter, fileDataBytes.Length);
-            
+
 
             Console.WriteLine($"Sending {fileName}...");
             Console.WriteLine($"Total Transfer Length: {combined.Length}");
@@ -235,7 +234,14 @@ namespace CapComm.Communication
                             KeyActions.SetNumLock(false);
                             KeyActions.SetScrollLock(false);
 
-                            byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBits.ToArray());
+                            // Error correction
+                            // var decoder = new ReedSolomonDecoder(10);
+                            // messageBytes = decoder.Decode(messageBytes);
+                            bool[] messageBitsCorrected = ErrorCorrection.encode(messageBits.ToArray());
+
+                            byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBitsCorrected);
+
+                            
 
                             return messageBytes;
                         }
@@ -251,7 +257,12 @@ namespace CapComm.Communication
         // This is used to send a message
         public static void SendMessage(byte[] message)
         {
+            
+
             bool[] messageBits = BitConverterUtil.ConvertToBoolBitArray(message);
+
+            // Error correction handling
+            messageBits = ErrorCorrection.encode(messageBits);
 
             KeyActions.SetCapsLock(false);
             KeyActions.SetNumLock(false);
@@ -304,3 +315,5 @@ namespace CapComm.Communication
         }
     }
 }
+
+

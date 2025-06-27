@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using CapComm.Communication;
 
-
 static void main()
 {
 
@@ -25,7 +24,6 @@ static void main()
             Console.WriteLine("send = send a text message");
             Console.WriteLine("send-file = send a file");
             Console.WriteLine("");
-
 
         }
         else if (cmd == "receive")

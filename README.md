@@ -34,6 +34,8 @@ The sender first sends the message length as a 32 bit encoded number followed by
 
 - ADD ERROR DETECTION AND/OR CORRECTION AT THIS LEVEL IN THE FUTURE. (THIS LAYER SHOULD BE RELIABLE)
 
+- Error correction done with ReedSolomon package
+
 ### Layer 3 - Transfer Layer
 
 This layer allows for different types of data to be transfered between the sender and the receiver. It starts with 4 bits to represent the message type followed by the message data.
@@ -41,8 +43,11 @@ This layer allows for different types of data to be transfered between the sende
 Message types include: string, file, and bits.
 
 
-## Build 
 
+## Dependencies
+dotnet add package ReedSolomon
+
+## Build 
 ```
 dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:ReadyToRun=false /p:DebugType=none /p:EnableCompressionInSingleFile=true /p:PublishTrimmed=true
 ```

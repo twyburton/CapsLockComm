@@ -1,2 +1,4 @@
 application/bin/*
 application/obj/*
+errorCorrectionTest/bin/*
+errorCorrectionTest/obj/*
