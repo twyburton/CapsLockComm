@@ -240,8 +240,6 @@ namespace CapComm.Communication
 
                             byte[] messageBytes = BitConverterUtil.ConvertBoolBitArrayToBytes(messageBits.ToArray());
 
-                            
-
                             return messageBytes;
                         }
                     }
