@@ -2,7 +2,7 @@
 
 This is a tool that allows communication using the cap/num/scroll lock keys. 
 This is useful in an environment when other transfer methods are blocked. 
-For example, when copy & paste is disabled over a RDP session. This requires the tool to be present on both hosts, so obviously this will not work if you can't get the tool on to one of the first hosts.
+For example, when copy & paste is disabled over a RDP session. This requires the tool to be present on both hosts, so obviously this will not work if you can't get the tool on to one of the hosts first.
 
 ```
 Warning! During transfers do not move the sending or receiving windows as this can cause data errors.
